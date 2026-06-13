@@ -1,0 +1,1705 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Familia – Mitarbeiterportal</title>
+<style>
+  :root {
+    --bg: #f5f5f7;
+    --surface: #ffffff;
+    --border: #d2d2d7;
+    --text: #1d1d1f;
+    --text2: #6e6e73;
+    --accent: #ff3b30;
+    --accent2: #ff6b35;
+    --blue: #0071e3;
+    --green: #30d158;
+    --yellow: #ffd60a;
+    --sidebar: #f5f5f7;
+    --tab-active: #ffffff;
+    --shadow: 0 2px 20px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 40px rgba(0,0,0,0.12);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --transition: 0.2s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── LOGIN ── */
+  #loginScreen {
+    position: fixed; inset: 0;
+    background: linear-gradient(135deg, #1d1d1f 0%, #2d2d2f 50%, #1a1a1f 100%);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  #loginScreen.hide {
+    opacity: 0; transform: scale(1.05); pointer-events: none;
+  }
+  .login-card {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(40px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 20px;
+    padding: 48px 40px;
+    width: 380px;
+    text-align: center;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+    animation: loginIn 0.6s cubic-bezier(0.4,0,0.2,1);
+  }
+  @keyframes loginIn {
+    from { opacity:0; transform: translateY(30px) scale(0.96); }
+    to   { opacity:1; transform: translateY(0) scale(1); }
+  }
+  .login-logo {
+    width: 72px; height: 72px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 18px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 32px;
+    box-shadow: 0 8px 24px rgba(255,59,48,0.4);
+  }
+  .login-card h1 { color: #fff; font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+  .login-card p { color: rgba(255,255,255,0.5); font-size: 13px; margin-top: 4px; margin-bottom: 28px; }
+  .login-input {
+    width: 100%; padding: 13px 16px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    color: #fff; font-size: 15px;
+    outline: none; margin-bottom: 10px;
+    transition: var(--transition);
+  }
+  .login-input::placeholder { color: rgba(255,255,255,0.3); }
+  .login-input:focus { border-color: var(--accent); background: rgba(255,255,255,0.12); }
+  .login-btn {
+    width: 100%; padding: 13px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none; border-radius: 10px;
+    color: #fff; font-size: 15px; font-weight: 600;
+    cursor: pointer; margin-top: 6px;
+    transition: var(--transition);
+    box-shadow: 0 4px 16px rgba(255,59,48,0.35);
+  }
+  .login-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(255,59,48,0.45); }
+  .login-btn:active { transform: translateY(0); }
+  .login-error { color: var(--accent); font-size: 13px; margin-top: 8px; min-height: 16px; }
+
+  /* ── APP SHELL ── */
+  #app { display: none; height: 100vh; flex-direction: column; }
+  #app.visible { display: flex; animation: appIn 0.4s ease; }
+  @keyframes appIn { from { opacity:0; } to { opacity:1; } }
+
+  /* ── TITLEBAR ── */
+  .titlebar {
+    background: rgba(245,245,247,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 16px;
+    height: 52px;
+    display: flex; align-items: center; gap: 12px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 100;
+  }
+  .traffic-lights { display: flex; gap: 6px; align-items: center; }
+  .tl { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; transition: var(--transition); }
+  .tl-r { background: #ff5f57; }
+  .tl-y { background: #febc2e; }
+  .tl-g { background: #28c840; }
+  .tl:hover { filter: brightness(0.85); }
+  .titlebar-logo {
+    display: flex; align-items: center; gap: 8px;
+    margin-left: 8px;
+  }
+  .titlebar-logo-icon {
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+  .titlebar-logo span { font-size: 14px; font-weight: 700; letter-spacing: -0.2px; }
+  .titlebar-spacer { flex: 1; }
+  .titlebar-user {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--text2);
+    cursor: pointer; padding: 5px 10px; border-radius: 8px;
+    transition: var(--transition);
+  }
+  .titlebar-user:hover { background: rgba(0,0,0,0.06); }
+  .user-avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: #fff;
+  }
+  .logout-btn {
+    background: none; border: 1px solid var(--border);
+    border-radius: 8px; padding: 5px 10px;
+    font-size: 12px; color: var(--text2);
+    cursor: pointer; transition: var(--transition);
+  }
+  .logout-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* ── TABS (macOS Safari style) ── */
+  .tabs-bar {
+    background: rgba(245,245,247,0.9);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 16px;
+    display: flex; align-items: flex-end; gap: 0;
+    height: 44px;
+    flex-shrink: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs-bar::-webkit-scrollbar { display: none; }
+  .tab {
+    display: flex; align-items: center; gap: 6px;
+    padding: 0 16px; height: 36px;
+    font-size: 13px; font-weight: 500;
+    color: var(--text2);
+    cursor: pointer; border-radius: 8px 8px 0 0;
+    border: 1px solid transparent;
+    border-bottom: none;
+    margin-top: 8px;
+    white-space: nowrap;
+    transition: var(--transition);
+    position: relative; bottom: -1px;
+    background: transparent;
+    user-select: none;
+  }
+  .tab:hover { color: var(--text); background: rgba(0,0,0,0.04); }
+  .tab.active {
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--text);
+    font-weight: 600;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.04);
+  }
+  .tab-icon { font-size: 14px; }
+
+  /* ── LAYOUT ── */
+  .main-layout {
+    display: flex; flex: 1; overflow: hidden;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 220px; flex-shrink: 0;
+    background: var(--sidebar);
+    border-right: 1px solid var(--border);
+    padding: 16px 0;
+    overflow-y: auto;
+    transition: var(--transition);
+  }
+  .sidebar-section { margin-bottom: 20px; }
+  .sidebar-title {
+    font-size: 11px; font-weight: 600;
+    color: var(--text2); letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 0 16px; margin-bottom: 4px;
+  }
+  .sidebar-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 16px; font-size: 13px;
+    cursor: pointer; border-radius: 0;
+    color: var(--text);
+    transition: var(--transition);
+    border-left: 3px solid transparent;
+  }
+  .sidebar-item:hover { background: rgba(0,0,0,0.05); }
+  .sidebar-item.active {
+    background: rgba(255,59,48,0.08);
+    border-left-color: var(--accent);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .sidebar-item-icon { font-size: 15px; width: 20px; text-align: center; }
+  .sidebar-badge {
+    margin-left: auto; background: var(--accent);
+    color: #fff; font-size: 10px; font-weight: 700;
+    border-radius: 10px; padding: 2px 6px;
+  }
+
+  /* ── CONTENT ── */
+  .content {
+    flex: 1; overflow-y: auto; padding: 28px;
+    background: var(--bg);
+  }
+  .content::-webkit-scrollbar { width: 6px; }
+  .content::-webkit-scrollbar-track { background: transparent; }
+  .content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ── PANELS ── */
+  .panel { display: none; animation: fadeSlide 0.25s ease; }
+  .panel.active { display: block; }
+  @keyframes fadeSlide {
+    from { opacity:0; transform: translateY(8px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+
+  /* ── PAGE HEADER ── */
+  .page-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .page-header h2 { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+  .page-header p { font-size: 14px; color: var(--text2); margin-top: 2px; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 16px; border-radius: var(--radius-sm);
+    font-size: 13px; font-weight: 600;
+    cursor: pointer; border: none;
+    transition: var(--transition);
+  }
+  .btn-primary { background: var(--blue); color: #fff; box-shadow: 0 2px 8px rgba(0,113,227,0.3); }
+  .btn-primary:hover { background: #0077ed; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,113,227,0.4); }
+  .btn-danger { background: var(--accent); color: #fff; }
+  .btn-danger:hover { background: #e0342a; transform: translateY(-1px); }
+  .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--bg); transform: translateY(-1px); }
+  .btn-success { background: var(--green); color: #fff; }
+  .btn-success:hover { filter: brightness(0.9); transform: translateY(-1px); }
+  .btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--surface); border-radius: var(--radius);
+    box-shadow: var(--shadow); border: 1px solid var(--border);
+    overflow: hidden;
+    transition: box-shadow var(--transition), transform var(--transition);
+  }
+  .card:hover { box-shadow: var(--shadow-lg); transform: translateY(-1px); }
+  .card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .card-header h3 { font-size: 15px; font-weight: 600; }
+  .card-body { padding: 20px; }
+
+  /* ── GRID ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+  /* ── STATS ── */
+  .stat-card {
+    background: var(--surface); border-radius: var(--radius);
+    padding: 20px; border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+  }
+  .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+  .stat-icon { font-size: 28px; margin-bottom: 10px; }
+  .stat-value { font-size: 32px; font-weight: 700; letter-spacing: -1px; }
+  .stat-label { font-size: 12px; color: var(--text2); font-weight: 500; margin-top: 2px; }
+
+  /* ── DASHBOARD ── */
+  .welcome-banner {
+    background: linear-gradient(135deg, #1d1d1f 0%, #2d2d2f 100%);
+    border-radius: var(--radius);
+    padding: 28px 32px;
+    color: #fff;
+    margin-bottom: 24px;
+    position: relative; overflow: hidden;
+  }
+  .welcome-banner::before {
+    content: '🌮';
+    position: absolute; right: 32px; top: 50%; transform: translateY(-50%);
+    font-size: 64px; opacity: 0.15;
+  }
+  .welcome-banner h3 { font-size: 22px; font-weight: 700; }
+  .welcome-banner p { font-size: 14px; color: rgba(255,255,255,0.6); margin-top: 4px; }
+  .welcome-accent { color: var(--accent); }
+
+  /* ── FORMS ── */
+  .form-group { margin-bottom: 16px; }
+  .form-label { font-size: 13px; font-weight: 600; color: var(--text); display: block; margin-bottom: 6px; }
+  .form-control {
+    width: 100%; padding: 10px 14px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); font-size: 14px; color: var(--text);
+    outline: none; transition: var(--transition);
+  }
+  .form-control:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(0,113,227,0.12); }
+  textarea.form-control { resize: vertical; min-height: 80px; }
+  select.form-control { cursor: pointer; }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    display: none; align-items: center; justify-content: center;
+    animation: fadeIn 0.2s ease;
+  }
+  .modal-overlay.open { display: flex; }
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+  .modal {
+    background: var(--surface);
+    border-radius: 16px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.25);
+    width: 90%; max-width: 520px;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: modalIn 0.3s cubic-bezier(0.4,0,0.2,1);
+  }
+  @keyframes modalIn {
+    from { opacity:0; transform: scale(0.94) translateY(-10px); }
+    to   { opacity:1; transform: scale(1) translateY(0); }
+  }
+  .modal-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-header h3 { font-size: 17px; font-weight: 700; }
+  .modal-close {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--bg); border: none;
+    cursor: pointer; font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    transition: var(--transition);
+  }
+  .modal-close:hover { background: var(--accent); color: #fff; }
+  .modal-body { padding: 20px 24px; }
+  .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+
+  /* ── FILE ITEMS ── */
+  .file-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px; border-radius: var(--radius-sm);
+    background: var(--bg); border: 1px solid var(--border);
+    margin-bottom: 8px; cursor: pointer;
+    transition: var(--transition);
+  }
+  .file-item:hover { background: var(--surface); border-color: var(--blue); transform: translateX(2px); }
+  .file-icon { font-size: 24px; }
+  .file-info { flex: 1; }
+  .file-name { font-size: 14px; font-weight: 600; }
+  .file-meta { font-size: 12px; color: var(--text2); }
+  .file-actions { display: flex; gap: 6px; opacity: 0; transition: var(--transition); }
+  .file-item:hover .file-actions { opacity: 1; }
+
+  /* ── GALLERY ── */
+  .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+  .gallery-item {
+    aspect-ratio: 1; border-radius: var(--radius-sm);
+    overflow: hidden; cursor: pointer; position: relative;
+    background: var(--border);
+    border: 1px solid var(--border);
+    transition: var(--transition);
+  }
+  .gallery-item:hover { transform: scale(1.02); box-shadow: var(--shadow-lg); }
+  .gallery-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .gallery-item .gallery-overlay {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex; align-items: flex-end;
+    padding: 10px; opacity: 0; transition: var(--transition);
+  }
+  .gallery-item:hover .gallery-overlay { opacity: 1; }
+  .gallery-overlay span { color: #fff; font-size: 12px; font-weight: 600; }
+  .gallery-placeholder {
+    aspect-ratio: 1; border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--bg), var(--border));
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; border: 2px dashed var(--border);
+    transition: var(--transition); color: var(--text2);
+  }
+  .gallery-placeholder:hover { border-color: var(--blue); color: var(--blue); background: rgba(0,113,227,0.04); }
+
+  /* ── CALENDAR ── */
+  .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+  .cal-header-cell { text-align: center; font-size: 11px; font-weight: 700; color: var(--text2); padding: 6px 0; text-transform: uppercase; }
+  .cal-cell {
+    min-height: 72px; padding: 6px;
+    border: 1px solid var(--border); border-radius: 6px;
+    background: var(--surface); cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+  }
+  .cal-cell:hover { background: var(--bg); border-color: var(--blue); }
+  .cal-cell.today { border-color: var(--blue); background: rgba(0,113,227,0.04); }
+  .cal-cell.today .cal-day { background: var(--accent); color: #fff; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; }
+  .cal-cell.other-month { opacity: 0.4; }
+  .cal-day { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+  .cal-event { font-size: 10px; background: var(--accent); color: #fff; border-radius: 4px; padding: 2px 5px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cal-event.blue { background: var(--blue); }
+  .cal-event.green { background: var(--green); }
+  .cal-nav { display: flex; align-items: center; gap: 12px; }
+  .cal-nav-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; cursor: pointer; font-size: 16px; transition: var(--transition); }
+  .cal-nav-btn:hover { background: var(--bg); border-color: var(--blue); }
+  .cal-month-title { font-size: 18px; font-weight: 700; min-width: 200px; text-align: center; }
+
+  /* ── NOTES ── */
+  .note-card {
+    background: var(--surface); border-radius: var(--radius);
+    padding: 16px; border: 1px solid var(--border);
+    cursor: pointer; transition: var(--transition);
+    border-left: 4px solid var(--accent);
+  }
+  .note-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+  .note-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .note-card p { font-size: 13px; color: var(--text2); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .note-meta { font-size: 11px; color: var(--text2); margin-top: 8px; }
+
+  /* ── PDF DOCS ── */
+  .doc-card {
+    background: var(--surface); border-radius: var(--radius);
+    padding: 20px; border: 1px solid var(--border);
+    transition: var(--transition); cursor: pointer;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .doc-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); border-color: var(--blue); }
+  .doc-icon { font-size: 36px; }
+  .doc-title { font-size: 14px; font-weight: 700; }
+  .doc-desc { font-size: 12px; color: var(--text2); }
+  .doc-actions { display: flex; gap: 6px; margin-top: 4px; }
+
+  /* ── UPLOAD ZONE ── */
+  .upload-zone {
+    border: 2px dashed var(--border); border-radius: var(--radius);
+    padding: 40px; text-align: center; cursor: pointer;
+    transition: var(--transition);
+  }
+  .upload-zone:hover, .upload-zone.dragover { border-color: var(--blue); background: rgba(0,113,227,0.04); }
+  .upload-zone-icon { font-size: 48px; margin-bottom: 12px; }
+  .upload-zone h4 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+  .upload-zone p { font-size: 13px; color: var(--text2); }
+
+  /* ── CATEGORY TABS ── */
+  .cat-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
+  .cat-tab {
+    padding: 6px 14px; border-radius: 20px;
+    border: 1px solid var(--border); background: var(--surface);
+    font-size: 13px; cursor: pointer; transition: var(--transition); font-weight: 500;
+  }
+  .cat-tab:hover { border-color: var(--blue); color: var(--blue); }
+  .cat-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* ── TOAST ── */
+  #toastContainer { position: fixed; bottom: 24px; right: 24px; z-index: 9000; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    background: #1d1d1f; color: #fff;
+    padding: 12px 18px; border-radius: 10px;
+    font-size: 13px; font-weight: 500;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    animation: toastIn 0.3s cubic-bezier(0.4,0,0.2,1);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .toast.success { border-left: 3px solid var(--green); }
+  .toast.error { border-left: 3px solid var(--accent); }
+  .toast.info { border-left: 3px solid var(--blue); }
+  @keyframes toastIn { from { opacity:0; transform: translateX(20px); } to { opacity:1; transform: translateX(0); } }
+
+  /* ── MEMBERS TABLE ── */
+  .members-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+  .members-table th { padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; background: var(--bg); border-bottom: 1px solid var(--border); }
+  .members-table td { padding: 12px 14px; font-size: 14px; border-bottom: 1px solid rgba(0,0,0,0.04); }
+  .members-table tr:hover td { background: rgba(0,0,0,0.02); }
+  .member-avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; margin-right: 8px; vertical-align: middle; }
+  .status-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+  .status-online { background: rgba(48,209,88,0.15); color: var(--green); }
+  .status-offline { background: rgba(0,0,0,0.06); color: var(--text2); }
+
+  /* ── LIGHTBOX ── */
+  #lightbox {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.9);
+    z-index: 2000; display: none;
+    align-items: center; justify-content: center;
+    backdrop-filter: blur(20px);
+  }
+  #lightbox.open { display: flex; }
+  #lightbox img { max-width: 90vw; max-height: 90vh; border-radius: var(--radius); box-shadow: 0 30px 80px rgba(0,0,0,0.5); }
+  #lightboxClose { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.1); border: none; color: #fff; font-size: 24px; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition); }
+  #lightboxClose:hover { background: var(--accent); }
+
+  /* ── PDF VIEWER ── */
+  #pdfViewer {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 2000; display: none;
+    align-items: center; justify-content: center;
+    backdrop-filter: blur(20px);
+  }
+  #pdfViewer.open { display: flex; flex-direction: column; }
+  .pdf-shell { background: var(--surface); border-radius: var(--radius); width: 90vw; max-width: 800px; height: 85vh; overflow-y: auto; padding: 40px; position: relative; }
+  .pdf-close { position: absolute; top: 16px; right: 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 50%; width: 32px; height: 32px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: var(--transition); }
+  .pdf-close:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .pdf-field { width: 100%; border: none; border-bottom: 2px solid var(--border); padding: 4px 0; font-size: 14px; color: var(--text); background: transparent; outline: none; margin: 4px 0; transition: var(--transition); }
+  .pdf-field:focus { border-bottom-color: var(--blue); }
+  .pdf-title { font-size: 22px; font-weight: 700; text-align: center; margin-bottom: 24px; color: var(--text); }
+  .pdf-section { margin-bottom: 20px; }
+  .pdf-section-title { font-size: 13px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+  .pdf-logo { text-align: center; font-size: 32px; margin-bottom: 8px; }
+  .pdf-print-btn { position: sticky; bottom: 16px; margin-top: 24px; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ── SEARCH BAR ── */
+  .search-bar {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 20px; padding: 7px 14px;
+    transition: var(--transition);
+  }
+  .search-bar:focus-within { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(0,113,227,0.1); }
+  .search-bar input { border: none; background: transparent; outline: none; font-size: 13px; width: 200px; }
+  .search-bar span { color: var(--text2); font-size: 14px; }
+
+  /* ── DIVIDER ── */
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  /* ── EMPTY STATE ── */
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--text2); }
+  .empty-state-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+  .empty-state h3 { font-size: 17px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .empty-state p { font-size: 14px; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .sidebar { width: 60px; }
+    .sidebar-title, .sidebar-item span { display: none; }
+    .grid-4 { grid-template-columns: 1fr 1fr; }
+    .grid-3 { grid-template-columns: 1fr; }
+    .grid-2 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">🌮</div>
+    <h1>La Familia</h1>
+    <p>Latino Community Deutschland – Mitarbeiterportal</p>
+    <input class="login-input" id="loginUser" type="text" placeholder="Benutzername" autocomplete="username">
+    <input class="login-input" id="loginPass" type="password" placeholder="Passwort" autocomplete="current-password">
+    <button class="login-btn" onclick="doLogin()">Anmelden</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <!-- TITLEBAR -->
+  <div class="titlebar">
+    <div class="traffic-lights">
+      <div class="tl tl-r"></div>
+      <div class="tl tl-y"></div>
+      <div class="tl tl-g"></div>
+    </div>
+    <div class="titlebar-logo">
+      <div class="titlebar-logo-icon">🌮</div>
+      <span>La Familia</span>
+    </div>
+    <div class="titlebar-spacer"></div>
+    <div class="search-bar">
+      <span>🔍</span>
+      <input type="text" placeholder="Suchen…" id="globalSearch" oninput="globalSearchFn(this.value)">
+    </div>
+    <div class="titlebar-user">
+      <div class="user-avatar" id="userAvatar"></div>
+      <span id="userNameDisplay"></span>
+    </div>
+    <button class="logout-btn" onclick="doLogout()">Abmelden</button>
+  </div>
+
+  <!-- TABS BAR (macOS Safari style) -->
+  <div class="tabs-bar" id="tabsBar">
+    <div class="tab active" onclick="switchTab('dashboard')" data-tab="dashboard"><span class="tab-icon">🏠</span> Dashboard</div>
+    <div class="tab" onclick="switchTab('dokumente')" data-tab="dokumente"><span class="tab-icon">📄</span> Dokumente</div>
+    <div class="tab" onclick="switchTab('dateien')" data-tab="dateien"><span class="tab-icon">📁</span> Dateien</div>
+    <div class="tab" onclick="switchTab('galerie')" data-tab="galerie"><span class="tab-icon">🖼️</span> Galerie</div>
+    <div class="tab" onclick="switchTab('kalender')" data-tab="kalender"><span class="tab-icon">📅</span> Kalender</div>
+    <div class="tab" onclick="switchTab('notizen')" data-tab="notizen"><span class="tab-icon">📝</span> Notizen</div>
+    <div class="tab" onclick="switchTab('mitglieder')" data-tab="mitglieder"><span class="tab-icon">👥</span> Team</div>
+  </div>
+
+  <!-- MAIN LAYOUT -->
+  <div class="main-layout">
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">Navigation</div>
+        <div class="sidebar-item active" onclick="switchPanel('dashboard'); setSideActive(this)">
+          <span class="sidebar-item-icon">🏠</span><span>Dashboard</span>
+        </div>
+        <div class="sidebar-item" onclick="switchPanel('dokumente'); setSideActive(this)">
+          <span class="sidebar-item-icon">📄</span><span>Dokumente</span>
+        </div>
+        <div class="sidebar-item" onclick="switchPanel('dateien'); setSideActive(this)">
+          <span class="sidebar-item-icon">📁</span><span>Dateien</span>
+        </div>
+        <div class="sidebar-item" onclick="switchPanel('galerie'); setSideActive(this)">
+          <span class="sidebar-item-icon">🖼️</span><span>Galerie</span>
+        </div>
+        <div class="sidebar-item" onclick="switchPanel('kalender'); setSideActive(this)">
+          <span class="sidebar-item-icon">📅</span><span>Kalender</span>
+        </div>
+        <div class="sidebar-item" onclick="switchPanel('notizen'); setSideActive(this)">
+          <span class="sidebar-item-icon">📝</span><span>Notizen</span>
+        </div>
+        <div class="sidebar-item" onclick="switchPanel('mitglieder'); setSideActive(this)">
+          <span class="sidebar-item-icon">👥</span><span>Team</span>
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-title">Schnellzugriff</div>
+        <div class="sidebar-item" onclick="openPdfViewer('antrag')">
+          <span class="sidebar-item-icon">📋</span><span>Antrag</span>
+        </div>
+        <div class="sidebar-item" onclick="openPdfViewer('bericht')">
+          <span class="sidebar-item-icon">📊</span><span>Bericht</span>
+        </div>
+        <div class="sidebar-item" onclick="openModal('eventModal')">
+          <span class="sidebar-item-icon">➕</span><span>Termin</span>
+        </div>
+        <div class="sidebar-item" onclick="openModal('noteModal')">
+          <span class="sidebar-item-icon">✏️</span><span>Notiz</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div class="panel active" id="panel-dashboard">
+        <div class="welcome-banner">
+          <h3>¡Bienvenidos, <span class="welcome-accent" id="welcomeName"></span>! 🎉</h3>
+          <p>Willkommen im La Familia Mitarbeiterportal – dein zentraler Hub für alles.</p>
+        </div>
+        <div class="grid-4" style="margin-bottom:24px" id="statsGrid">
+          <div class="stat-card"><div class="stat-icon">📄</div><div class="stat-value" id="statDocs">0</div><div class="stat-label">Dokumente</div></div>
+          <div class="stat-card"><div class="stat-icon">📁</div><div class="stat-value" id="statFiles">0</div><div class="stat-label">Dateien</div></div>
+          <div class="stat-card"><div class="stat-icon">🖼️</div><div class="stat-value" id="statPhotos">0</div><div class="stat-label">Fotos</div></div>
+          <div class="stat-card"><div class="stat-icon">📅</div><div class="stat-value" id="statEvents">0</div><div class="stat-label">Termine</div></div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><h3>📅 Nächste Termine</h3><button class="btn btn-primary btn-sm" onclick="openModal('eventModal')">+ Termin</button></div>
+            <div class="card-body" id="dashEvents"><div class="empty-state"><div class="empty-state-icon">📅</div><p>Keine Termine</p></div></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>📝 Letzte Notizen</h3><button class="btn btn-primary btn-sm" onclick="openModal('noteModal')">+ Notiz</button></div>
+            <div class="card-body" id="dashNotes"><div class="empty-state"><div class="empty-state-icon">📝</div><p>Keine Notizen</p></div></div>
+          </div>
+        </div>
+        <div style="margin-top:16px" class="card">
+          <div class="card-header"><h3>📁 Zuletzt hochgeladen</h3></div>
+          <div class="card-body" id="dashFiles"><div class="empty-state"><div class="empty-state-icon">📁</div><p>Noch keine Dateien</p></div></div>
+        </div>
+      </div>
+
+      <!-- DOKUMENTE -->
+      <div class="panel" id="panel-dokumente">
+        <div class="page-header">
+          <div><h2>📄 Dokumente</h2><p>Vorgefertigte Formulare zum Ausfüllen</p></div>
+        </div>
+        <div class="grid-3" id="docsGrid">
+          <!-- Docs rendered by JS -->
+        </div>
+      </div>
+
+      <!-- DATEIEN -->
+      <div class="panel" id="panel-dateien">
+        <div class="page-header">
+          <div><h2>📁 Dateiverwaltung</h2><p>Dateien nach Kategorien organisieren</p></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-secondary" onclick="openModal('catModal')">+ Kategorie</button>
+            <button class="btn btn-primary" onclick="triggerUpload()">⬆️ Hochladen</button>
+          </div>
+        </div>
+        <input type="file" id="fileUploadInput" style="display:none" multiple onchange="handleUpload(this)">
+        <div class="cat-tabs" id="catTabs">
+          <div class="cat-tab active" onclick="filterFiles('Alle', this)">📂 Alle</div>
+        </div>
+        <div id="filesList"></div>
+        <div class="upload-zone" onclick="triggerUpload()" id="uploadZone"
+          ondragover="event.preventDefault();this.classList.add('dragover')"
+          ondragleave="this.classList.remove('dragover')"
+          ondrop="handleDrop(event)">
+          <div class="upload-zone-icon">☁️</div>
+          <h4>Dateien hochladen</h4>
+          <p>Klicken oder Datei hierher ziehen</p>
+        </div>
+      </div>
+
+      <!-- GALERIE -->
+      <div class="panel" id="panel-galerie">
+        <div class="page-header">
+          <div><h2>🖼️ Fotogalerie</h2><p>Bilder der La Familia Community</p></div>
+          <button class="btn btn-primary" onclick="triggerPhotoUpload()">📸 Fotos hinzufügen</button>
+        </div>
+        <input type="file" id="photoUploadInput" style="display:none" multiple accept="image/*" onchange="handlePhotoUpload(this)">
+        <div class="cat-tabs" id="galCatTabs">
+          <div class="cat-tab active" onclick="filterGallery('Alle', this)">🖼️ Alle</div>
+        </div>
+        <div class="gallery-grid" id="galleryGrid">
+          <div class="gallery-placeholder" onclick="triggerPhotoUpload()">
+            <div style="font-size:32px;margin-bottom:8px">➕</div>
+            <div style="font-size:13px;font-weight:600">Foto hinzufügen</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KALENDER -->
+      <div class="panel" id="panel-kalender">
+        <div class="page-header" style="flex-wrap:wrap;gap:12px">
+          <div class="cal-nav">
+            <button class="cal-nav-btn" onclick="calNav(-1)">‹</button>
+            <div class="cal-month-title" id="calTitle"></div>
+            <button class="cal-nav-btn" onclick="calNav(1)">›</button>
+          </div>
+          <button class="btn btn-primary" onclick="openModal('eventModal')">+ Termin erstellen</button>
+        </div>
+        <div class="card">
+          <div class="card-body" style="padding:16px">
+            <div class="calendar-grid" id="calHeader"></div>
+            <div style="height:8px"></div>
+            <div class="calendar-grid" id="calGrid"></div>
+          </div>
+        </div>
+        <div style="margin-top:16px" class="card" id="eventListCard">
+          <div class="card-header"><h3>📋 Alle Termine</h3></div>
+          <div class="card-body" id="eventList"></div>
+        </div>
+      </div>
+
+      <!-- NOTIZEN -->
+      <div class="panel" id="panel-notizen">
+        <div class="page-header">
+          <div><h2>📝 Notizen</h2><p>Persönliche und Team-Notizen</p></div>
+          <button class="btn btn-primary" onclick="openModal('noteModal')">+ Notiz erstellen</button>
+        </div>
+        <div class="grid-3" id="notesGrid"></div>
+      </div>
+
+      <!-- MITGLIEDER -->
+      <div class="panel" id="panel-mitglieder">
+        <div class="page-header">
+          <div><h2>👥 Team – La Familia</h2><p>8 Mitarbeiter der Community</p></div>
+        </div>
+        <div class="card">
+          <div class="card-body" style="padding:0">
+            <table class="members-table" id="membersTable"></table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main-layout -->
+</div><!-- /app -->
+
+<!-- LIGHTBOX -->
+<div id="lightbox">
+  <button id="lightboxClose" onclick="closeLightbox()">✕</button>
+  <img id="lightboxImg" src="" alt="">
+</div>
+
+<!-- PDF VIEWER -->
+<div id="pdfViewer">
+  <button class="pdf-close" onclick="closePdfViewer()" style="position:fixed;top:20px;right:20px;z-index:10;background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:#fff;width:40px;height:40px;font-size:20px">✕</button>
+  <div class="pdf-shell" id="pdfShell"></div>
+</div>
+
+<!-- MODAL: Event -->
+<div class="modal-overlay" id="eventModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="eventModalTitle">📅 Termin erstellen</h3>
+      <button class="modal-close" onclick="closeModal('eventModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editEventId">
+      <div class="form-group"><label class="form-label">Titel *</label><input class="form-control" id="eventTitle" placeholder="z.B. Team-Meeting"></div>
+      <div class="grid-2">
+        <div class="form-group"><label class="form-label">Datum *</label><input class="form-control" id="eventDate" type="date"></div>
+        <div class="form-group"><label class="form-label">Uhrzeit</label><input class="form-control" id="eventTime" type="time"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Beschreibung</label><textarea class="form-control" id="eventDesc" placeholder="Details…"></textarea></div>
+      <div class="form-group"><label class="form-label">Farbe</label>
+        <select class="form-control" id="eventColor">
+          <option value="red">🔴 Rot</option>
+          <option value="blue">🔵 Blau</option>
+          <option value="green">🟢 Grün</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('eventModal')">Abbrechen</button>
+      <button class="btn btn-primary" onclick="saveEvent()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Note -->
+<div class="modal-overlay" id="noteModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="noteModalTitle">📝 Notiz erstellen</h3>
+      <button class="modal-close" onclick="closeModal('noteModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editNoteId">
+      <div class="form-group"><label class="form-label">Titel *</label><input class="form-control" id="noteTitle" placeholder="Titel der Notiz"></div>
+      <div class="form-group"><label class="form-label">Inhalt *</label><textarea class="form-control" id="noteContent" placeholder="Notiz schreiben…" style="min-height:120px"></textarea></div>
+      <div class="form-group"><label class="form-label">Farbe</label>
+        <select class="form-control" id="noteColor">
+          <option value="#ff3b30">🔴 Rot</option>
+          <option value="#0071e3">🔵 Blau</option>
+          <option value="#30d158">🟢 Grün</option>
+          <option value="#ffd60a">🟡 Gelb</option>
+          <option value="#af52de">🟣 Lila</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('noteModal')">Abbrechen</button>
+      <button class="btn btn-primary" onclick="saveNote()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Category -->
+<div class="modal-overlay" id="catModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>📂 Neue Kategorie</h3>
+      <button class="modal-close" onclick="closeModal('catModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Kategoriename *</label><input class="form-control" id="catName" placeholder="z.B. Verträge"></div>
+      <div class="form-group"><label class="form-label">Icon</label>
+        <select class="form-control" id="catIcon">
+          <option value="📁">📁 Ordner</option>
+          <option value="📋">📋 Dokument</option>
+          <option value="💼">💼 Business</option>
+          <option value="🎉">🎉 Event</option>
+          <option value="🌮">🌮 La Familia</option>
+          <option value="📸">📸 Fotos</option>
+          <option value="💰">💰 Finanzen</option>
+          <option value="📢">📢 Marketing</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('catModal')">Abbrechen</button>
+      <button class="btn btn-primary" onclick="saveCat()">Erstellen</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: File Detail -->
+<div class="modal-overlay" id="fileModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="fileModalTitle">Datei</h3>
+      <button class="modal-close" onclick="closeModal('fileModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Name</label><input class="form-control" id="editFileName" placeholder="Dateiname"></div>
+      <div class="form-group"><label class="form-label">Kategorie</label><select class="form-control" id="editFileCat"></select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" onclick="deleteFileFromModal()">Löschen</button>
+      <button class="btn btn-secondary" onclick="closeModal('fileModal')">Abbrechen</button>
+      <button class="btn btn-primary" onclick="saveFileEdit()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Photo Detail -->
+<div class="modal-overlay" id="photoModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>🖼️ Foto bearbeiten</h3>
+      <button class="modal-close" onclick="closeModal('photoModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="text-align:center;margin-bottom:12px"><img id="photoModalImg" src="" style="max-width:100%;border-radius:8px;max-height:200px;object-fit:cover"></div>
+      <div class="form-group"><label class="form-label">Beschreibung</label><input class="form-control" id="photoModalDesc" placeholder="Bildbeschreibung"></div>
+      <div class="form-group"><label class="form-label">Kategorie</label><select class="form-control" id="photoModalCat"></select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" onclick="deletePhotoFromModal()">Löschen</button>
+      <button class="btn btn-secondary" onclick="closeModal('photoModal')">Abbrechen</button>
+      <button class="btn btn-primary" onclick="savePhotoEdit()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toastContainer"></div>
+
+<script>
+// ╔══════════════════════════════════╗
+// ║         USERS & AUTH             ║
+// ╚══════════════════════════════════╝
+const USERS = [
+  { name: 'Giovanni', pass: 'LaAdmin1', role: 'Admin' },
+  { name: 'Ricardo',  pass: 'LaFam1',   role: 'Mitarbeiter' },
+  { name: 'Natalia',  pass: 'LaFam2',   role: 'Mitarbeiter' },
+  { name: 'Andy',     pass: 'LaFam3',   role: 'Mitarbeiter' },
+  { name: 'Filippo',  pass: 'LaFam4',   role: 'Mitarbeiter' },
+  { name: 'Cassandra',pass: 'LaFam5',   role: 'Mitarbeiter' },
+  { name: 'Kilian',   pass: 'LaFam6',   role: 'Mitarbeiter' },
+  { name: 'Valentina',pass: 'LaFam7',   role: 'Mitarbeiter' },
+];
+
+let currentUser = null;
+
+function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value.trim();
+  const found = USERS.find(x => x.name.toLowerCase() === u.toLowerCase() && x.pass === p);
+  if (!found) {
+    document.getElementById('loginError').textContent = 'Falscher Benutzername oder Passwort.';
+    document.getElementById('loginPass').style.borderColor = 'var(--accent)';
+    return;
+  }
+  currentUser = found;
+  document.getElementById('loginScreen').classList.add('hide');
+  setTimeout(() => {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('app').classList.add('visible');
+    initApp();
+  }, 500);
+}
+
+document.getElementById('loginUser').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('loginPass').focus(); });
+document.getElementById('loginPass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginScreen').classList.remove('hide');
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('loginPass').value = '';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginError').textContent = '';
+}
+
+// ╔══════════════════════════════════╗
+// ║         STORAGE HELPERS          ║
+// ╚══════════════════════════════════╝
+const LS = {
+  get: k => { try { return JSON.parse(localStorage.getItem('lf_'+k)) || []; } catch { return []; }},
+  set: (k,v) => localStorage.setItem('lf_'+k, JSON.stringify(v)),
+  getObj: (k, def={}) => { try { return JSON.parse(localStorage.getItem('lf_'+k)) || def; } catch { return def; }},
+  setObj: (k,v) => localStorage.setItem('lf_'+k, JSON.stringify(v)),
+};
+
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
+
+// ╔══════════════════════════════════╗
+// ║         INIT APP                 ║
+// ╚══════════════════════════════════╝
+function initApp() {
+  const av = currentUser.name[0].toUpperCase();
+  document.getElementById('userAvatar').textContent = av;
+  document.getElementById('userNameDisplay').textContent = currentUser.name;
+  document.getElementById('welcomeName').textContent = currentUser.name;
+  renderDashboard();
+  renderDocs();
+  renderFiles();
+  renderGallery();
+  renderCalendar();
+  renderNotes();
+  renderMembers();
+}
+
+// ╔══════════════════════════════════╗
+// ║         NAVIGATION               ║
+// ╚══════════════════════════════════╝
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab===name));
+  switchPanel(name);
+}
+
+function switchPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  const el = document.getElementById('panel-'+name);
+  if (el) el.classList.add('active');
+  // sync tab
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab===name));
+}
+
+function setSideActive(el) {
+  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ╔══════════════════════════════════╗
+// ║         MODALS                   ║
+// ╚══════════════════════════════════╝
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+// Close on backdrop click
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if(e.target===m) m.classList.remove('open'); });
+});
+
+// ╔══════════════════════════════════╗
+// ║         TOAST                    ║
+// ╚══════════════════════════════════╝
+function toast(msg, type='success') {
+  const icons = { success:'✅', error:'❌', info:'ℹ️' };
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `${icons[type]||'ℹ️'} ${msg}`;
+  document.getElementById('toastContainer').appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+
+// ╔══════════════════════════════════╗
+// ║         DASHBOARD                ║
+// ╚══════════════════════════════════╝
+function renderDashboard() {
+  const events = LS.get('events');
+  const notes  = LS.get('notes');
+  const files  = LS.get('files');
+  const photos = LS.get('photos');
+
+  document.getElementById('statDocs').textContent = '6';
+  document.getElementById('statFiles').textContent = files.length;
+  document.getElementById('statPhotos').textContent = photos.length;
+  document.getElementById('statEvents').textContent = events.length;
+
+  // Events
+  const de = document.getElementById('dashEvents');
+  const upcoming = events.sort((a,b)=>a.date.localeCompare(b.date)).slice(0,5);
+  if (!upcoming.length) { de.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📅</div><p>Keine Termine</p></div>'; }
+  else {
+    de.innerHTML = upcoming.map(e => `
+      <div class="file-item" onclick="switchPanel('kalender');switchTab('kalender')">
+        <span style="font-size:20px">📅</span>
+        <div class="file-info">
+          <div class="file-name">${e.title}</div>
+          <div class="file-meta">${formatDate(e.date)} ${e.time||''}</div>
+        </div>
+      </div>`).join('');
+  }
+
+  // Notes
+  const dn = document.getElementById('dashNotes');
+  const recentNotes = notes.slice(-4).reverse();
+  if (!recentNotes.length) { dn.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div><p>Keine Notizen</p></div>'; }
+  else {
+    dn.innerHTML = recentNotes.map(n => `
+      <div class="file-item" onclick="switchPanel('notizen');switchTab('notizen')">
+        <span style="font-size:20px">📝</span>
+        <div class="file-info">
+          <div class="file-name">${n.title}</div>
+          <div class="file-meta">${n.content.slice(0,40)}…</div>
+        </div>
+      </div>`).join('');
+  }
+
+  // Files
+  const df = document.getElementById('dashFiles');
+  const recentFiles = files.slice(-5).reverse();
+  if (!recentFiles.length) { df.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📁</div><p>Noch keine Dateien</p></div>'; }
+  else {
+    df.innerHTML = recentFiles.map(f => `
+      <div class="file-item">
+        <span class="file-icon">${fileIcon(f.name)}</span>
+        <div class="file-info">
+          <div class="file-name">${f.name}</div>
+          <div class="file-meta">${f.cat||'Keine Kategorie'} · ${f.uploader} · ${formatDate(f.date)}</div>
+        </div>
+      </div>`).join('');
+  }
+}
+
+function formatDate(d) {
+  if (!d) return '';
+  const dt = new Date(d);
+  return dt.toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric' });
+}
+
+// ╔══════════════════════════════════╗
+// ║     PREDEFINED DOCUMENTS (PDF)   ║
+// ╚══════════════════════════════════╝
+const DOCS = [
+  { id:'antrag', icon:'📋', title:'Antrag auf Mitgliedschaft', desc:'Formular für neue Community-Mitglieder', color:'#0071e3' },
+  { id:'bericht', icon:'📊', title:'Tätigkeitsbericht', desc:'Monatlicher Arbeitsbericht für Mitarbeiter', color:'#30d158' },
+  { id:'veranstaltung', icon:'🎉', title:'Veranstaltungsplanung', desc:'Planung für Community-Events', color:'#ff3b30' },
+  { id:'vertrag', icon:'📝', title:'Zusammenarbeitsvertrag', desc:'Vereinbarung für Kooperationen', color:'#af52de' },
+  { id:'finanzen', icon:'💰', title:'Ausgabenabrechnung', desc:'Formular für Kostenerstattung', color:'#ff9500' },
+  { id:'protokoll', icon:'📓', title:'Meeting-Protokoll', desc:'Vorlage für Sitzungsprotokolle', color:'#636366' },
+];
+
+function renderDocs() {
+  document.getElementById('docsGrid').innerHTML = DOCS.map(d => `
+    <div class="doc-card" onclick="openPdfViewer('${d.id}')">
+      <div class="doc-icon">${d.icon}</div>
+      <div class="doc-title">${d.title}</div>
+      <div class="doc-desc">${d.desc}</div>
+      <div class="doc-actions">
+        <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openPdfViewer('${d.id}')">📝 Ausfüllen</button>
+      </div>
+    </div>`).join('');
+}
+
+// ╔══════════════════════════════════╗
+// ║         PDF VIEWER               ║
+// ╚══════════════════════════════════╝
+const PDF_TEMPLATES = {
+  antrag: {
+    title:'Antrag auf Mitgliedschaft',
+    sections:[
+      { title:'Persönliche Daten', fields:['Vorname','Nachname','Geburtsdatum','Nationalität','E-Mail','Telefon','Adresse'] },
+      { title:'Mitgliedschaft', fields:['Gewünschte Mitgliedschaft','Referenz/Empfehlung','Besondere Fähigkeiten'] },
+      { title:'Motivation', type:'textarea', fields:['Warum möchten Sie La Familia beitreten?','Was können Sie zur Community beitragen?'] },
+    ]
+  },
+  bericht: {
+    title:'Monatlicher Tätigkeitsbericht',
+    sections:[
+      { title:'Zeitraum & Mitarbeiter', fields:['Mitarbeiter','Monat/Jahr','Abteilung'] },
+      { title:'Erledigte Aufgaben', type:'textarea', fields:['Aufgabe 1','Aufgabe 2','Aufgabe 3'] },
+      { title:'Geplante Aktivitäten (nächster Monat)', type:'textarea', fields:['Planung 1','Planung 2'] },
+      { title:'Anmerkungen', type:'textarea', fields:['Sonstige Anmerkungen'] },
+    ]
+  },
+  veranstaltung: {
+    title:'Veranstaltungsplanung',
+    sections:[
+      { title:'Event-Informationen', fields:['Veranstaltungsname','Datum','Uhrzeit','Ort','Erwartete Teilnehmerzahl'] },
+      { title:'Organisation', fields:['Verantwortlicher Mitarbeiter','Budget (€)','Sponsoren'] },
+      { title:'Programm', type:'textarea', fields:['Programmpunkte','Besondere Anforderungen','Catering-Wünsche'] },
+    ]
+  },
+  vertrag: {
+    title:'Zusammenarbeitsvertrag',
+    sections:[
+      { title:'Vertragsparteien', fields:['Partner / Organisation','Kontaktperson','E-Mail Partner','Datum'] },
+      { title:'Leistungsumfang', type:'textarea', fields:['Art der Zusammenarbeit','Leistungen La Familia','Leistungen Partner'] },
+      { title:'Konditionen', fields:['Laufzeit','Vergütung (€)','Zahlungsbedingungen'] },
+    ]
+  },
+  finanzen: {
+    title:'Ausgabenabrechnung',
+    sections:[
+      { title:'Mitarbeiterdaten', fields:['Name','Datum','Kostenstelle'] },
+      { title:'Ausgaben', fields:['Ausgabe 1 (Bezeichnung)','Betrag 1 (€)','Ausgabe 2 (Bezeichnung)','Betrag 2 (€)','Ausgabe 3 (Bezeichnung)','Betrag 3 (€)','Gesamtbetrag (€)'] },
+      { title:'Begründung', type:'textarea', fields:['Verwendungszweck','Anmerkungen'] },
+    ]
+  },
+  protokoll: {
+    title:'Meeting-Protokoll',
+    sections:[
+      { title:'Meeting-Details', fields:['Datum','Uhrzeit','Ort/Plattform','Moderator','Teilnehmer'] },
+      { title:'Tagesordnungspunkte', type:'textarea', fields:['TOP 1','TOP 2','TOP 3'] },
+      { title:'Beschlüsse & Maßnahmen', type:'textarea', fields:['Beschlüsse','Maßnahmen & Verantwortliche','Nächster Termin'] },
+    ]
+  },
+};
+
+function openPdfViewer(id) {
+  const tmpl = PDF_TEMPLATES[id];
+  if (!tmpl) return;
+  const doc = DOCS.find(d=>d.id===id);
+  let html = `<div class="pdf-logo">🌮</div><div class="pdf-title">${tmpl.title}</div>
+    <div style="text-align:center;font-size:12px;color:var(--text2);margin-bottom:24px">La Familia – Latino Community Deutschland</div>
+    <div class="divider"></div>`;
+  tmpl.sections.forEach(sec => {
+    html += `<div class="pdf-section"><div class="pdf-section-title">${sec.title}</div>`;
+    if (sec.type==='textarea') {
+      sec.fields.forEach(f => {
+        html += `<div class="form-label" style="font-size:12px;margin-top:10px">${f}</div>
+          <textarea class="pdf-field" placeholder="${f}…" style="border:1px solid var(--border);border-radius:6px;padding:8px;width:100%;min-height:70px;resize:vertical"></textarea>`;
+      });
+    } else {
+      html += '<div class="grid-2" style="gap:12px">';
+      sec.fields.forEach(f => {
+        html += `<div><div class="form-label" style="font-size:12px">${f}</div><input class="pdf-field" placeholder="${f}"></div>`;
+      });
+      html += '</div>';
+    }
+    html += '</div><div class="divider"></div>';
+  });
+  html += `<div style="text-align:center;color:var(--text2);font-size:11px;margin-top:12px">
+    Unterschrift Mitarbeiter: _________________________ &nbsp;&nbsp; Datum: _____________
+    <br><br>La Familia e.V. – Latino Community Deutschland
+  </div>
+  <div class="pdf-print-btn" style="text-align:center">
+    <button class="btn btn-primary" onclick="window.print()">🖨️ Drucken / Speichern als PDF</button>
+  </div>`;
+  document.getElementById('pdfShell').innerHTML = html;
+  document.getElementById('pdfViewer').classList.add('open');
+}
+
+function closePdfViewer() {
+  document.getElementById('pdfViewer').classList.remove('open');
+}
+
+// ╔══════════════════════════════════╗
+// ║         FILE MANAGEMENT          ║
+// ╚══════════════════════════════════╝
+let currentCat = 'Alle';
+let editingFileId = null;
+
+function triggerUpload() { document.getElementById('fileUploadInput').click(); }
+
+function handleUpload(input) {
+  const files = LS.get('files');
+  const cats = LS.get('categories');
+  Array.from(input.files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      files.push({ id:genId(), name:file.name, cat:currentCat==='Alle'?(cats[0]||'Allgemein'):currentCat, data:e.target.result, uploader:currentUser.name, date:new Date().toISOString().split('T')[0], type:file.type });
+      LS.set('files', files);
+      renderFiles();
+      renderDashboard();
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value='';
+  toast('Datei(en) hochgeladen!');
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.remove('dragover');
+  const dt = e.dataTransfer;
+  if (dt.files.length) handleUploadFiles(dt.files);
+}
+
+function handleUploadFiles(fileList) {
+  const files = LS.get('files');
+  const cats = LS.get('categories');
+  let done = 0;
+  Array.from(fileList).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      files.push({ id:genId(), name:file.name, cat:currentCat==='Alle'?(cats[0]||'Allgemein'):currentCat, data:e.target.result, uploader:currentUser.name, date:new Date().toISOString().split('T')[0], type:file.type });
+      done++;
+      if (done===fileList.length) { LS.set('files', files); renderFiles(); renderDashboard(); toast('Datei(en) hochgeladen!'); }
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderFiles() {
+  const files = LS.get('files');
+  const cats = LS.get('categories');
+
+  // Update cat tabs
+  const ct = document.getElementById('catTabs');
+  ct.innerHTML = `<div class="cat-tab ${currentCat==='Alle'?'active':''}" onclick="filterFiles('Alle', this)">📂 Alle</div>` +
+    cats.map(c => `<div class="cat-tab ${currentCat===c?'active':''}" onclick="filterFiles('${c}', this)">${c}</div>`).join('');
+
+  const shown = currentCat==='Alle' ? files : files.filter(f=>f.cat===currentCat);
+  const fl = document.getElementById('filesList');
+  if (!shown.length) { fl.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📁</div><h3>Keine Dateien</h3><p>Lade Dateien hoch oder wähle eine andere Kategorie</p></div>'; return; }
+  fl.innerHTML = shown.map(f => `
+    <div class="file-item" ondblclick="downloadFile('${f.id}')">
+      <span class="file-icon">${fileIcon(f.name)}</span>
+      <div class="file-info">
+        <div class="file-name">${f.name}</div>
+        <div class="file-meta">${f.cat} · ${f.uploader} · ${formatDate(f.date)}</div>
+      </div>
+      <div class="file-actions">
+        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();downloadFile('${f.id}')">⬇️</button>
+        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();editFile('${f.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteFile('${f.id}')">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+function filterFiles(cat, el) {
+  currentCat = cat;
+  document.querySelectorAll('#catTabs .cat-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderFiles();
+}
+
+function fileIcon(name) {
+  const ext = name.split('.').pop().toLowerCase();
+  const map = { pdf:'📄', doc:'📝', docx:'📝', xls:'📊', xlsx:'📊', ppt:'📊', pptx:'📊', jpg:'🖼️', jpeg:'🖼️', png:'🖼️', gif:'🖼️', mp4:'🎬', mp3:'🎵', zip:'📦', rar:'📦', txt:'📃' };
+  return map[ext]||'📁';
+}
+
+function downloadFile(id) {
+  const f = LS.get('files').find(f=>f.id===id);
+  if (!f) return;
+  const a = document.createElement('a'); a.href=f.data; a.download=f.name; a.click();
+}
+
+function editFile(id) {
+  editingFileId = id;
+  const f = LS.get('files').find(f=>f.id===id);
+  if (!f) return;
+  document.getElementById('fileModalTitle').textContent = '✏️ '+f.name;
+  document.getElementById('editFileName').value = f.name;
+  const cats = LS.get('categories');
+  const sel = document.getElementById('editFileCat');
+  sel.innerHTML = cats.map(c=>`<option ${c===f.cat?'selected':''}>${c}</option>`).join('');
+  openModal('fileModal');
+}
+
+function saveFileEdit() {
+  const files = LS.get('files');
+  const idx = files.findIndex(f=>f.id===editingFileId);
+  if (idx===-1) return;
+  files[idx].name = document.getElementById('editFileName').value || files[idx].name;
+  files[idx].cat = document.getElementById('editFileCat').value;
+  LS.set('files', files);
+  closeModal('fileModal');
+  renderFiles(); renderDashboard();
+  toast('Datei aktualisiert!');
+}
+
+function deleteFile(id) {
+  if (!confirm('Datei wirklich löschen?')) return;
+  LS.set('files', LS.get('files').filter(f=>f.id!==id));
+  renderFiles(); renderDashboard();
+  toast('Datei gelöscht.','info');
+}
+
+function deleteFileFromModal() {
+  closeModal('fileModal');
+  deleteFile(editingFileId);
+}
+
+function saveCat() {
+  const name = document.getElementById('catName').value.trim();
+  const icon = document.getElementById('catIcon').value;
+  if (!name) return toast('Bitte Name eingeben','error');
+  const cats = LS.get('categories');
+  const label = icon+' '+name;
+  if (cats.includes(label)) return toast('Kategorie existiert bereits','error');
+  cats.push(label);
+  LS.set('categories', cats);
+  closeModal('catModal');
+  document.getElementById('catName').value='';
+  renderFiles(); renderGallery();
+  toast('Kategorie erstellt!');
+}
+
+// ╔══════════════════════════════════╗
+// ║         GALLERY                  ║
+// ╚══════════════════════════════════╝
+let currentGalCat = 'Alle';
+let editingPhotoId = null;
+
+function triggerPhotoUpload() { document.getElementById('photoUploadInput').click(); }
+
+function handlePhotoUpload(input) {
+  const photos = LS.get('photos');
+  Array.from(input.files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      photos.push({ id:genId(), src:e.target.result, name:file.name, desc:file.name, cat:'Allgemein', uploader:currentUser.name, date:new Date().toISOString().split('T')[0] });
+      LS.set('photos', photos);
+      renderGallery(); renderDashboard();
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value='';
+  toast('Foto(s) hinzugefügt!');
+}
+
+function renderGallery() {
+  const photos = LS.get('photos');
+  const cats = LS.get('categories');
+  const galCats = ['Allgemein', ...cats];
+
+  const gt = document.getElementById('galCatTabs');
+  gt.innerHTML = `<div class="cat-tab ${currentGalCat==='Alle'?'active':''}" onclick="filterGallery('Alle', this)">🖼️ Alle</div>` +
+    galCats.map(c=>`<div class="cat-tab ${currentGalCat===c?'active':''}" onclick="filterGallery('${c}', this)">${c}</div>`).join('');
+
+  const shown = currentGalCat==='Alle' ? photos : photos.filter(p=>p.cat===currentGalCat);
+  const gg = document.getElementById('galleryGrid');
+  gg.innerHTML = `<div class="gallery-placeholder" onclick="triggerPhotoUpload()"><div style="font-size:32px;margin-bottom:8px">➕</div><div style="font-size:13px;font-weight:600">Foto hinzufügen</div></div>`;
+  gg.innerHTML += shown.map(p=>`
+    <div class="gallery-item" onclick="openLightbox('${p.id}')">
+      <img src="${p.src}" alt="${p.desc}" loading="lazy">
+      <div class="gallery-overlay">
+        <span>${p.desc}</span>
+        <button class="btn btn-secondary btn-sm" style="margin-left:auto" onclick="event.stopPropagation();editPhoto('${p.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deletePhoto('${p.id}')">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+function filterGallery(cat, el) {
+  currentGalCat = cat;
+  document.querySelectorAll('#galCatTabs .cat-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderGallery();
+}
+
+function openLightbox(id) {
+  const p = LS.get('photos').find(p=>p.id===id);
+  if(!p) return;
+  document.getElementById('lightboxImg').src = p.src;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); }
+document.getElementById('lightbox').addEventListener('click', e => { if(e.target===document.getElementById('lightbox')) closeLightbox(); });
+
+function editPhoto(id) {
+  editingPhotoId = id;
+  const p = LS.get('photos').find(p=>p.id===id);
+  if(!p) return;
+  document.getElementById('photoModalImg').src = p.src;
+  document.getElementById('photoModalDesc').value = p.desc;
+  const cats = ['Allgemein', ...LS.get('categories')];
+  document.getElementById('photoModalCat').innerHTML = cats.map(c=>`<option ${c===p.cat?'selected':''}>${c}</option>`).join('');
+  openModal('photoModal');
+}
+
+function savePhotoEdit() {
+  const photos = LS.get('photos');
+  const idx = photos.findIndex(p=>p.id===editingPhotoId);
+  if(idx===-1) return;
+  photos[idx].desc = document.getElementById('photoModalDesc').value;
+  photos[idx].cat  = document.getElementById('photoModalCat').value;
+  LS.set('photos', photos);
+  closeModal('photoModal');
+  renderGallery();
+  toast('Foto aktualisiert!');
+}
+
+function deletePhoto(id) {
+  if(!confirm('Foto wirklich löschen?')) return;
+  LS.set('photos', LS.get('photos').filter(p=>p.id!==id));
+  renderGallery(); renderDashboard();
+  toast('Foto gelöscht.','info');
+}
+
+function deletePhotoFromModal() {
+  closeModal('photoModal');
+  deletePhoto(editingPhotoId);
+}
+
+// ╔══════════════════════════════════╗
+// ║         CALENDAR                 ║
+// ╚══════════════════════════════════╝
+let calDate = new Date();
+
+function calNav(dir) { calDate.setMonth(calDate.getMonth()+dir); renderCalendar(); }
+
+function renderCalendar() {
+  const events = LS.get('events');
+  const y=calDate.getFullYear(), m=calDate.getMonth();
+  const months=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+  const days=['Mo','Di','Mi','Do','Fr','Sa','So'];
+  document.getElementById('calTitle').textContent = months[m]+' '+y;
+
+  const hd = document.getElementById('calHeader');
+  hd.innerHTML = days.map(d=>`<div class="cal-header-cell">${d}</div>`).join('');
+
+  const first = new Date(y,m,1);
+  let startDay = first.getDay()-1; if(startDay<0) startDay=6;
+  const daysInMonth = new Date(y,m+1,0).getDate();
+  const daysInPrev = new Date(y,m,0).getDate();
+  const today = new Date();
+
+  let cells = '';
+  // prev month
+  for(let i=startDay-1;i>=0;i--) {
+    cells += `<div class="cal-cell other-month"><div class="cal-day">${daysInPrev-i}</div></div>`;
+  }
+  // current month
+  for(let d=1;d<=daysInMonth;d++) {
+    const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = d===today.getDate()&&m===today.getMonth()&&y===today.getFullYear();
+    const dayEvents = events.filter(e=>e.date===dateStr);
+    const evHtml = dayEvents.slice(0,3).map(e=>`<div class="cal-event ${e.color==='blue'?'blue':e.color==='green'?'green':''}" title="${e.title}">${e.title}</div>`).join('');
+    cells += `<div class="cal-cell ${isToday?'today':''}" onclick="calDayClick('${dateStr}')">
+      <div class="cal-day">${d}</div>${evHtml}
+    </div>`;
+  }
+  // next month fill
+  const total = startDay+daysInMonth;
+  const remain = total%7===0?0:7-(total%7);
+  for(let i=1;i<=remain;i++) {
+    cells += `<div class="cal-cell other-month"><div class="cal-day">${i}</div></div>`;
+  }
+  document.getElementById('calGrid').innerHTML = cells;
+
+  // Event list
+  const el = document.getElementById('eventList');
+  const sorted = [...events].sort((a,b)=>a.date.localeCompare(b.date));
+  if(!sorted.length) { el.innerHTML='<div class="empty-state"><div class="empty-state-icon">📅</div><p>Keine Termine vorhanden</p></div>'; return; }
+  el.innerHTML = sorted.map(e=>`
+    <div class="file-item">
+      <span style="font-size:22px">${e.color==='blue'?'🔵':e.color==='green'?'🟢':'🔴'}</span>
+      <div class="file-info">
+        <div class="file-name">${e.title}</div>
+        <div class="file-meta">${formatDate(e.date)} ${e.time||''} ${e.desc?'· '+e.desc:''}</div>
+      </div>
+      <div class="file-actions">
+        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();editEvent('${e.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteEvent('${e.id}')">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+function calDayClick(date) {
+  document.getElementById('eventDate').value = date;
+  document.getElementById('eventModalTitle').textContent = '📅 Termin erstellen';
+  document.getElementById('editEventId').value = '';
+  document.getElementById('eventTitle').value='';
+  document.getElementById('eventTime').value='';
+  document.getElementById('eventDesc').value='';
+  openModal('eventModal');
+}
+
+function saveEvent() {
+  const title = document.getElementById('eventTitle').value.trim();
+  const date  = document.getElementById('eventDate').value;
+  if(!title||!date) return toast('Bitte Titel und Datum angeben','error');
+  const events = LS.get('events');
+  const id = document.getElementById('editEventId').value;
+  const ev = { id:id||genId(), title, date, time:document.getElementById('eventTime').value, desc:document.getElementById('eventDesc').value, color:document.getElementById('eventColor').value };
+  if(id) { const i=events.findIndex(e=>e.id===id); if(i!==-1) events[i]=ev; }
+  else events.push(ev);
+  LS.set('events', events);
+  closeModal('eventModal');
+  renderCalendar(); renderDashboard();
+  toast(id?'Termin aktualisiert!':'Termin erstellt!');
+}
+
+function editEvent(id) {
+  const e = LS.get('events').find(e=>e.id===id);
+  if(!e) return;
+  document.getElementById('editEventId').value=e.id;
+  document.getElementById('eventTitle').value=e.title;
+  document.getElementById('eventDate').value=e.date;
+  document.getElementById('eventTime').value=e.time||'';
+  document.getElementById('eventDesc').value=e.desc||'';
+  document.getElementById('eventColor').value=e.color||'red';
+  document.getElementById('eventModalTitle').textContent='✏️ Termin bearbeiten';
+  openModal('eventModal');
+}
+
+function deleteEvent(id) {
+  if(!confirm('Termin löschen?')) return;
+  LS.set('events', LS.get('events').filter(e=>e.id!==id));
+  renderCalendar(); renderDashboard();
+  toast('Termin gelöscht.','info');
+}
+
+// ╔══════════════════════════════════╗
+// ║         NOTES                    ║
+// ╚══════════════════════════════════╝
+function saveNote() {
+  const title = document.getElementById('noteTitle').value.trim();
+  const content = document.getElementById('noteContent').value.trim();
+  if(!title||!content) return toast('Bitte Titel und Inhalt eingeben','error');
+  const notes = LS.get('notes');
+  const id = document.getElementById('editNoteId').value;
+  const note = { id:id||genId(), title, content, color:document.getElementById('noteColor').value, author:currentUser.name, date:new Date().toISOString().split('T')[0] };
+  if(id) { const i=notes.findIndex(n=>n.id===id); if(i!==-1) notes[i]=note; }
+  else notes.push(note);
+  LS.set('notes', notes);
+  closeModal('noteModal');
+  document.getElementById('noteTitle').value='';
+  document.getElementById('noteContent').value='';
+  document.getElementById('editNoteId').value='';
+  renderNotes(); renderDashboard();
+  toast(id?'Notiz aktualisiert!':'Notiz erstellt!');
+}
+
+function renderNotes() {
+  const notes = LS.get('notes');
+  const ng = document.getElementById('notesGrid');
+  if(!notes.length) { ng.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-state-icon">📝</div><h3>Keine Notizen</h3><p>Erstelle deine erste Notiz!</p></div>'; return; }
+  ng.innerHTML = [...notes].reverse().map(n=>`
+    <div class="note-card" style="border-left-color:${n.color}" onclick="editNote('${n.id}')">
+      <h4>${n.title}</h4>
+      <p>${n.content}</p>
+      <div class="note-meta">✍️ ${n.author} · ${formatDate(n.date)}</div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();editNote('${n.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteNote('${n.id}')">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+function editNote(id) {
+  const n = LS.get('notes').find(n=>n.id===id);
+  if(!n) return;
+  document.getElementById('editNoteId').value=n.id;
+  document.getElementById('noteTitle').value=n.title;
+  document.getElementById('noteContent').value=n.content;
+  document.getElementById('noteColor').value=n.color;
+  document.getElementById('noteModalTitle').textContent='✏️ Notiz bearbeiten';
+  openModal('noteModal');
+}
+
+function deleteNote(id) {
+  if(!confirm('Notiz löschen?')) return;
+  LS.set('notes', LS.get('notes').filter(n=>n.id!==id));
+  renderNotes(); renderDashboard();
+  toast('Notiz gelöscht.','info');
+}
+
+// ╔══════════════════════════════════╗
+// ║         MEMBERS                  ║
+// ╚══════════════════════════════════╝
+function renderMembers() {
+  const t = document.getElementById('membersTable');
+  t.innerHTML = `<thead><tr><th>Mitarbeiter</th><th>Rolle</th><th>Status</th></tr></thead>
+    <tbody>${USERS.map(u=>`
+      <tr>
+        <td><span class="member-avatar">${u.name[0]}</span><strong>${u.name}</strong></td>
+        <td><span style="font-size:12px;padding:3px 8px;border-radius:6px;background:${u.role==='Admin'?'rgba(255,59,48,0.1)':'var(--bg)'};color:${u.role==='Admin'?'var(--accent)':'var(--text2)'};">${u.role}</span></td>
+        <td><span class="status-badge ${u.name===currentUser?.name?'status-online':'status-offline'}">${u.name===currentUser?.name?'🟢 Online':'⚫ Offline'}</span></td>
+      </tr>`).join('')}
+    </tbody>`;
+}
+
+// ╔══════════════════════════════════╗
+// ║         GLOBAL SEARCH            ║
+// ╚══════════════════════════════════╝
+function globalSearchFn(q) {
+  if(!q) return;
+  q = q.toLowerCase();
+  const panels = ['dateien','galerie','notizen','kalender'];
+  let found = false;
+  LS.get('notes').forEach(n=>{ if(n.title.toLowerCase().includes(q)||n.content.toLowerCase().includes(q)) { switchPanel('notizen'); switchTab('notizen'); found=true; }});
+  if(!found) LS.get('files').forEach(f=>{ if(f.name.toLowerCase().includes(q)) { switchPanel('dateien'); switchTab('dateien'); found=true; }});
+}
+
+// ╔══════════════════════════════════╗
+// ║         INIT DEFAULTS            ║
+// ╚══════════════════════════════════╝
+(function initDefaults(){
+  if(!LS.get('categories').length) LS.set('categories', ['📋 Dokumente','🎉 Events','💼 Business','📢 Marketing']);
+})();
+
+// Set default date for event
+document.getElementById('eventDate').valueAsDate = new Date();
+</script>
+</body>
+</html>
